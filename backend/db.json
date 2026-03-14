@@ -1,0 +1,272 @@
+{
+  "users": [
+    {
+      "id": "c001d092-a9e4-4f5b-8afd-a00470d098f3",
+      "created_at": "2026-03-14T07:57:38.631Z",
+      "name": "Admin User",
+      "email": "admin@coreinventory.com",
+      "password": "$2a$10$8Jw2ow58Z1SoUdCTYyc.0OFnlCIOtdIewlfme98QWteRnRk5mPI4.",
+      "role": "manager"
+    }
+  ],
+  "products": [
+    {
+      "id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "created_at": "2026-03-14T07:57:38.635Z",
+      "name": "Steel Rods",
+      "sku": "STL-001",
+      "category": "Raw Materials",
+      "unit": "kg",
+      "reorder_point": 50
+    },
+    {
+      "id": "781f1b62-71cd-40f7-972e-7687de979f73",
+      "created_at": "2026-03-14T07:57:38.636Z",
+      "name": "Wooden Pallets",
+      "sku": "WDP-002",
+      "category": "Packaging",
+      "unit": "pcs",
+      "reorder_point": 20
+    },
+    {
+      "id": "b5623f9d-ccd8-4245-be53-f805654f719a",
+      "created_at": "2026-03-14T07:57:38.636Z",
+      "name": "Aluminium Sheets",
+      "sku": "ALM-003",
+      "category": "Raw Materials",
+      "unit": "kg",
+      "reorder_point": 30
+    },
+    {
+      "id": "1742d2a7-9687-4b13-8673-b32fa61b6262",
+      "created_at": "2026-03-14T07:57:38.637Z",
+      "name": "Plastic Crates",
+      "sku": "PLS-004",
+      "category": "Packaging",
+      "unit": "pcs",
+      "reorder_point": 15
+    },
+    {
+      "id": "99857a54-7baf-4a0e-9e6d-3b895fd43296",
+      "created_at": "2026-03-14T07:57:38.637Z",
+      "name": "Iron Bolts",
+      "sku": "IRN-005",
+      "category": "Hardware",
+      "unit": "pcs",
+      "reorder_point": 100
+    }
+  ],
+  "warehouses": [
+    {
+      "id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "created_at": "2026-03-14T07:57:38.632Z",
+      "name": "Main Warehouse",
+      "short_code": "MW",
+      "address": "123 Industrial Blvd"
+    },
+    {
+      "id": "84238afc-6c04-4619-924d-c6ccb8d2ac93",
+      "created_at": "2026-03-14T07:57:38.633Z",
+      "name": "Secondary Warehouse",
+      "short_code": "SW",
+      "address": "456 Storage Ave"
+    }
+  ],
+  "locations": [
+    {
+      "id": "20f7dace-53b6-4d9d-9369-be75fc3c340c",
+      "created_at": "2026-03-14T07:57:38.633Z",
+      "name": "Main Store",
+      "short_code": "MS",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "0299a99d-bae5-457a-9828-2f1aedb647db",
+      "created_at": "2026-03-14T07:57:38.634Z",
+      "name": "Production Rack",
+      "short_code": "PR",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse"
+    },
+    {
+      "id": "b8d437c4-2e06-4c63-88ef-401b3af7bb74",
+      "created_at": "2026-03-14T07:57:38.635Z",
+      "name": "Rack A",
+      "short_code": "RA",
+      "warehouse_id": "84238afc-6c04-4619-924d-c6ccb8d2ac93",
+      "warehouse": "Secondary Warehouse"
+    }
+  ],
+  "receipts": [
+    {
+      "id": "af1de665-d67c-4b8a-aaa9-b9f38a6b97ee",
+      "created_at": "2026-03-14T07:57:38.640Z",
+      "reference": "RCP/2025/001",
+      "supplier": "Steel Corp",
+      "status": "Done",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse",
+      "scheduled_date": "2025-06-01",
+      "done_date": "2025-06-01",
+      "notes": ""
+    },
+    {
+      "id": "00285165-feb3-43c1-9ca1-f3698e715c39",
+      "created_at": "2026-03-14T07:57:38.641Z",
+      "reference": "RCP/2025/002",
+      "supplier": "Wood Suppliers Ltd",
+      "status": "Ready",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse",
+      "scheduled_date": "2025-06-10",
+      "done_date": null,
+      "notes": ""
+    }
+  ],
+  "receipt_items": [
+    {
+      "id": "a7781196-61c9-415b-be4f-c4c25c80a9e7",
+      "created_at": "2026-03-14T07:57:38.640Z",
+      "receipt_id": "af1de665-d67c-4b8a-aaa9-b9f38a6b97ee",
+      "product_id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "product_name": "Steel Rods",
+      "product_sku": "STL-001",
+      "qty_expected": 100,
+      "qty_received": 100,
+      "unit": "kg"
+    },
+    {
+      "id": "843a6a6e-1df2-423f-ae54-3fa9399567a0",
+      "created_at": "2026-03-14T07:57:38.641Z",
+      "receipt_id": "00285165-feb3-43c1-9ca1-f3698e715c39",
+      "product_id": "781f1b62-71cd-40f7-972e-7687de979f73",
+      "product_name": "Wooden Pallets",
+      "product_sku": "WDP-002",
+      "qty_expected": 50,
+      "qty_received": 0,
+      "unit": "pcs"
+    }
+  ],
+  "deliveries": [
+    {
+      "id": "d7d4ed61-768c-4955-b083-026a119cd8a6",
+      "created_at": "2026-03-14T07:57:38.642Z",
+      "reference": "DEL/2025/001",
+      "customer": "Acme Corp",
+      "status": "Done",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse",
+      "scheduled_date": "2025-06-05",
+      "done_date": "2025-06-05",
+      "notes": ""
+    },
+    {
+      "id": "48d92239-c0dc-4bbf-89a5-399170432aa9",
+      "created_at": "2026-03-14T07:57:38.643Z",
+      "reference": "DEL/2025/002",
+      "customer": "BuildRight Inc",
+      "status": "Ready",
+      "warehouse_id": "a6322fcf-0da2-4e48-bfd6-41068ee50690",
+      "warehouse": "Main Warehouse",
+      "scheduled_date": "2025-06-15",
+      "done_date": null,
+      "notes": ""
+    }
+  ],
+  "delivery_items": [
+    {
+      "id": "a710ebcc-8f2e-49d6-903a-babcc5b4a61d",
+      "created_at": "2026-03-14T07:57:38.642Z",
+      "delivery_id": "d7d4ed61-768c-4955-b083-026a119cd8a6",
+      "product_id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "product_name": "Steel Rods",
+      "product_sku": "STL-001",
+      "qty_expected": 20,
+      "qty_done": 20,
+      "unit": "kg"
+    },
+    {
+      "id": "81d8481b-715b-46ab-9cbd-f2ece25abe1f",
+      "created_at": "2026-03-14T07:57:38.643Z",
+      "delivery_id": "48d92239-c0dc-4bbf-89a5-399170432aa9",
+      "product_id": "b5623f9d-ccd8-4245-be53-f805654f719a",
+      "product_name": "Aluminium Sheets",
+      "product_sku": "ALM-003",
+      "qty_expected": 30,
+      "qty_done": 0,
+      "unit": "kg"
+    }
+  ],
+  "transfers": [],
+  "transfer_items": [],
+  "adjustments": [],
+  "adjustment_items": [],
+  "stock_ledger": [
+    {
+      "id": "3f97bde6-2af9-4900-9c84-baaf87cbeb1a",
+      "created_at": "2026-03-14T07:57:38.644Z",
+      "type": "receipt",
+      "reference": "RCP/2025/001",
+      "product_id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "product_name": "Steel Rods",
+      "product_sku": "STL-001",
+      "from_location": "Vendor",
+      "to_location": "Main Store",
+      "qty": 100,
+      "unit": "kg",
+      "date": "2025-06-01"
+    },
+    {
+      "id": "c0be5ea3-9ed3-446f-b659-b66ad837e33d",
+      "created_at": "2026-03-14T07:57:38.644Z",
+      "type": "delivery",
+      "reference": "DEL/2025/001",
+      "product_id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "product_name": "Steel Rods",
+      "product_sku": "STL-001",
+      "from_location": "Main Store",
+      "to_location": "Customer",
+      "qty": -20,
+      "unit": "kg",
+      "date": "2025-06-05"
+    }
+  ],
+  "stock": [
+    {
+      "id": "93597537-b22f-4dea-96fc-d6cdb35c58a6",
+      "created_at": "2026-03-14T07:57:38.638Z",
+      "product_id": "dc4c52f6-fcda-44f8-a897-a440da808c16",
+      "location_id": "20f7dace-53b6-4d9d-9369-be75fc3c340c",
+      "quantity": 100
+    },
+    {
+      "id": "7d561869-e1a7-4867-9a80-7fcaba4b27bb",
+      "created_at": "2026-03-14T07:57:38.638Z",
+      "product_id": "781f1b62-71cd-40f7-972e-7687de979f73",
+      "location_id": "20f7dace-53b6-4d9d-9369-be75fc3c340c",
+      "quantity": 50
+    },
+    {
+      "id": "2a6a1fbf-b335-4741-8b42-96cce7aa0856",
+      "created_at": "2026-03-14T07:57:38.638Z",
+      "product_id": "b5623f9d-ccd8-4245-be53-f805654f719a",
+      "location_id": "0299a99d-bae5-457a-9828-2f1aedb647db",
+      "quantity": 75
+    },
+    {
+      "id": "3f69d4e9-9faf-4e05-87ef-88d36e2a4e87",
+      "created_at": "2026-03-14T07:57:38.639Z",
+      "product_id": "1742d2a7-9687-4b13-8673-b32fa61b6262",
+      "location_id": "b8d437c4-2e06-4c63-88ef-401b3af7bb74",
+      "quantity": 30
+    },
+    {
+      "id": "a835c547-33a4-4202-9760-f6f0306c7b7f",
+      "created_at": "2026-03-14T07:57:38.639Z",
+      "product_id": "99857a54-7baf-4a0e-9e6d-3b895fd43296",
+      "location_id": "20f7dace-53b6-4d9d-9369-be75fc3c340c",
+      "quantity": 200
+    }
+  ]
+}
