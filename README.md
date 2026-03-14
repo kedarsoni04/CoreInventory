@@ -18,7 +18,7 @@ A full-stack, modular Inventory Management System (IMS) built to digitize and st
 
 ## Features
 
-- **Authentication** — Signup, Login, OTP-based password reset
+- **Authentication** — Signup, Login, **OTP-based password reset via email**
 - **Dashboard** — KPI cards (total products, low stock, out of stock, pending receipts/deliveries/transfers) + recent activity feed
 - **Products** — Full CRUD with stock per location, low stock alerts, reorder points, SKU search
 - **Receipts** — Create incoming stock orders, add/edit/remove products, validate to update stock
@@ -27,6 +27,7 @@ A full-stack, modular Inventory Management System (IMS) built to digitize and st
 - **Stock Adjustments** — Fix physical count mismatches, auto-calculates and logs differences
 - **Move History** — Complete stock ledger with filters by type, product, reference
 - **Warehouses & Locations** — Multi-warehouse, multi-location support
+- **Remote Access** — Deploy and access from anywhere (configured for remote IP connectivity)
 
 ---
 

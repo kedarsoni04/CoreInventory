@@ -25,6 +25,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   signup: (data) => api.post('/auth/signup', data),
+  requestResetOTP: (data) => api.post('/auth/request-reset-otp', data),
+  verifyResetOTP: (data) => api.post('/auth/verify-reset-otp', data),
   resetPassword: (data) => api.post('/auth/reset-password', data),
 };
 
@@ -45,6 +47,7 @@ export const receiptsAPI = {
   get: (id) => api.get(`/receipts/${id}`),
   create: (data) => api.post('/receipts', data),
   update: (id, data) => api.put(`/receipts/${id}`, data),
+  delete: (id) => api.delete(`/receipts/${id}`),
   validate: (id) => api.post(`/receipts/${id}/validate`),
   addItem: (id, data) => api.post(`/receipts/${id}/items`, data),
   updateItem: (id, itemId, data) => api.put(`/receipts/${id}/items/${itemId}`, data),
@@ -56,6 +59,7 @@ export const deliveriesAPI = {
   get: (id) => api.get(`/deliveries/${id}`),
   create: (data) => api.post('/deliveries', data),
   update: (id, data) => api.put(`/deliveries/${id}`, data),
+  delete: (id) => api.delete(`/deliveries/${id}`),
   validate: (id) => api.post(`/deliveries/${id}/validate`),
   addItem: (id, data) => api.post(`/deliveries/${id}/items`, data),
   updateItem: (id, itemId, data) => api.put(`/deliveries/${id}/items/${itemId}`, data),

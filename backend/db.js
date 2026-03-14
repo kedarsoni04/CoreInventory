@@ -1,63 +1,94 @@
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
-const fs = require('fs');
+const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_FILE = path.join(__dirname, 'db.json');
-
-// In-memory data store (replaces SQLite for portability)
-const db = {
-  users: [],
-  products: [],
-  warehouses: [],
-  locations: [],
-  receipts: [],
-  receipt_items: [],
-  deliveries: [],
-  delivery_items: [],
-  transfers: [],
-  transfer_items: [],
-  adjustments: [],
-  adjustment_items: [],
-  stock_ledger: [],
-  stock: [] // { product_id, location_id, quantity }
-};
+const DB_FILE = path.join(__dirname, 'database.sqlite');
+const db = new Database(DB_FILE);
 
 // Helpers
 function generateId() { return uuidv4(); }
 function now() { return new Date().toISOString(); }
 
+// Initialize Database schema
+function initDb() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, name TEXT, email TEXT, password TEXT, role TEXT);
+    CREATE TABLE IF NOT EXISTS warehouses (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, name TEXT, short_code TEXT, address TEXT);
+    CREATE TABLE IF NOT EXISTS locations (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, name TEXT, short_code TEXT, warehouse_id TEXT, warehouse TEXT);
+    CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, name TEXT, sku TEXT, category TEXT, unit TEXT, reorder_point INTEGER);
+    CREATE TABLE IF NOT EXISTS receipts (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, reference TEXT, supplier TEXT, status TEXT, warehouse_id TEXT, warehouse TEXT, scheduled_date TEXT, done_date TEXT, notes TEXT);
+    CREATE TABLE IF NOT EXISTS receipt_items (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, receipt_id TEXT, product_id TEXT, product_name TEXT, product_sku TEXT, qty_expected REAL, qty_received REAL, unit TEXT);
+    CREATE TABLE IF NOT EXISTS deliveries (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, reference TEXT, customer TEXT, status TEXT, warehouse_id TEXT, warehouse TEXT, scheduled_date TEXT, done_date TEXT, notes TEXT);
+    CREATE TABLE IF NOT EXISTS delivery_items (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, delivery_id TEXT, product_id TEXT, product_name TEXT, product_sku TEXT, qty_expected REAL, qty_done REAL, unit TEXT);
+    CREATE TABLE IF NOT EXISTS transfers (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, reference TEXT, from_location_id TEXT, to_location_id TEXT, from_location TEXT, to_location TEXT, scheduled_date TEXT, done_date TEXT, status TEXT, notes TEXT);
+    CREATE TABLE IF NOT EXISTS transfer_items (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, transfer_id TEXT, product_id TEXT, product_name TEXT, product_sku TEXT, qty REAL, unit TEXT);
+    CREATE TABLE IF NOT EXISTS adjustments (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, reference TEXT, location_id TEXT, location TEXT, scheduled_date TEXT, done_date TEXT, status TEXT, notes TEXT);
+    CREATE TABLE IF NOT EXISTS adjustment_items (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, adjustment_id TEXT, product_id TEXT, product_name TEXT, product_sku TEXT, qty_on_hand REAL, qty_counted REAL, unit TEXT);
+    CREATE TABLE IF NOT EXISTS stock_ledger (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, type TEXT, reference TEXT, product_id TEXT, product_name TEXT, product_sku TEXT, from_location TEXT, to_location TEXT, qty REAL, unit TEXT, date TEXT);
+    CREATE TABLE IF NOT EXISTS stock (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, product_id TEXT, location_id TEXT, quantity REAL);
+    CREATE TABLE IF NOT EXISTS password_reset_otp (id TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, email TEXT, otp TEXT, expires_at TEXT, verified INTEGER DEFAULT 0);
+  `);
+}
+initDb();
+
+// Migration: add missing columns to existing databases
+function runMigrations() {
+  const migrations = [
+    `ALTER TABLE password_reset_otp ADD COLUMN updated_at TEXT`,
+  ];
+  for (const sql of migrations) {
+    try { db.exec(sql); } catch (_) { /* column already exists, ignore */ }
+  }
+}
+runMigrations();
+
 function findAll(table, where = {}) {
-  return db[table].filter(row => {
-    return Object.entries(where).every(([k, v]) => row[k] === v);
-  });
+  const keys = Object.keys(where);
+  if (keys.length === 0) {
+    return db.prepare(`SELECT * FROM ${table}`).all();
+  }
+  const conditions = keys.map(k => `${k} = ?`).join(' AND ');
+  return db.prepare(`SELECT * FROM ${table} WHERE ${conditions}`).all(...keys.map(k => where[k]));
 }
 
 function findOne(table, where = {}) {
-  return db[table].find(row => Object.entries(where).every(([k, v]) => row[k] === v)) || null;
+  const keys = Object.keys(where);
+  if (keys.length === 0) {
+    return db.prepare(`SELECT * FROM ${table} LIMIT 1`).get() || null;
+  }
+  const conditions = keys.map(k => `${k} = ?`).join(' AND ');
+  return db.prepare(`SELECT * FROM ${table} WHERE ${conditions} LIMIT 1`).get(...keys.map(k => where[k])) || null;
 }
 
 function insert(table, data) {
   const row = { id: generateId(), created_at: now(), ...data };
-  db[table].push(row);
-  saveDatabase();
+  
+  // Filter out any incoming undefined fields or ones not handled by placeholders cleanly
+  const validKeys = Object.keys(row).filter(k => row[k] !== undefined);
+  const placeholders = validKeys.map(() => '?').join(', ');
+  
+  const stmt = db.prepare(`INSERT INTO ${table} (${validKeys.join(', ')}) VALUES (${placeholders})`);
+  stmt.run(...validKeys.map(k => row[k]));
   return row;
 }
 
 function update(table, id, data) {
-  const idx = db[table].findIndex(r => r.id === id);
-  if (idx === -1) return null;
-  db[table][idx] = { ...db[table][idx], ...data, updated_at: now() };
-  saveDatabase();
-  return db[table][idx];
+  const row = { ...data, updated_at: now() };
+  const validKeys = Object.keys(row).filter(k => row[k] !== undefined);
+  
+  if (validKeys.length === 0) return findOne(table, { id });
+  const setString = validKeys.map(k => `${k} = ?`).join(', ');
+  
+  const stmt = db.prepare(`UPDATE ${table} SET ${setString} WHERE id = ?`);
+  const changes = stmt.run(...validKeys.map(k => row[k]), id).changes;
+  if (changes === 0) return null;
+  return findOne(table, { id });
 }
 
 function remove(table, id) {
-  const idx = db[table].findIndex(r => r.id === id);
-  if (idx === -1) return false;
-  db[table].splice(idx, 1);
-  saveDatabase();
-  return true;
+  const changes = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id).changes;
+  return changes > 0;
 }
 
 function getStock(productId, locationId) {
@@ -74,34 +105,23 @@ function adjustStock(productId, locationId, delta) {
 }
 
 function getProductStock(productId) {
-  return db.stock.filter(s => s.product_id === productId).reduce((sum, s) => sum + (s.quantity || 0), 0);
+  const row = db.prepare(`SELECT SUM(quantity) as total FROM stock WHERE product_id = ?`).get(productId);
+  return row?.total || 0;
 }
 
-// Persistence functions
-function saveDatabase() {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
-  } catch (err) {
-    console.error('Error saving database:', err);
-  }
-}
-
+// Dummy loadDatabase as we persist instantly now
 function loadDatabase() {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-      Object.assign(db, data);
-      return true;
-    }
-  } catch (err) {
-    console.error('Error loading database:', err);
-  }
-  return false;
+  return true;
+}
+
+function saveDatabase() {
+  // SQLite persists instantly
 }
 
 // Seed data
 async function seedDatabase() {
-  if (db.users.length > 0) return; // Already seeded
+  const existingUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+  if (existingUsers > 0) return; // Already seeded
 
   // Create admin user
   const hash = await bcrypt.hash('admin123', 10);
@@ -153,10 +173,8 @@ async function seedDatabase() {
   insert('stock_ledger', { type: 'receipt', reference: 'RCP/2025/001', product_id: p1.id, product_name: 'Steel Rods', product_sku: 'STL-001', from_location: 'Vendor', to_location: 'Main Store', qty: 100, unit: 'kg', date: '2025-06-01' });
   insert('stock_ledger', { type: 'delivery', reference: 'DEL/2025/001', product_id: p1.id, product_name: 'Steel Rods', product_sku: 'STL-001', from_location: 'Main Store', to_location: 'Customer', qty: -20, unit: 'kg', date: '2025-06-05' });
 
-  console.log('✅ Database seeded successfully');
+  console.log('✅ SQLite Database seeded successfully');
   console.log(`   Admin: admin@coreinventory.com / admin123`);
-
-  saveDatabase();
 }
 
 module.exports = { db, insert, findAll, findOne, update, remove, adjustStock, getStock, getProductStock, generateId, now, seedDatabase, loadDatabase, saveDatabase };

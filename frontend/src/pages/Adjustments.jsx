@@ -90,7 +90,7 @@ export default function Adjustments() {
 
   const load = () => {
     Promise.all([adjustmentsAPI.list(), locationsAPI.list(), productsAPI.list()])
-      .then(([ar, lr, pr]) => { setAdjustments(ar.data); setLocations(lr.data); setProducts(pr.data); })
+      .then(([ar, lr, pr]) => { setAdjustments(ar.data); setLocations(lr.data); setProducts(pr.data.products); })
       .finally(() => setLoading(false));
   };
 

@@ -23,7 +23,7 @@ export default function ReceiptDetail() {
 
   const load = () => {
     Promise.all([receiptsAPI.get(id), productsAPI.list()])
-      .then(([rr, pr]) => { setReceipt(rr.data); setProducts(pr.data); setHeaderForm({ supplier: rr.data.supplier, scheduled_date: rr.data.scheduled_date, notes: rr.data.notes }); })
+      .then(([rr, pr]) => { setReceipt(rr.data); setProducts(pr.data.products ?? []); setHeaderForm({ supplier: rr.data.supplier, scheduled_date: rr.data.scheduled_date, notes: rr.data.notes }); })
       .finally(() => setLoading(false));
   };
 

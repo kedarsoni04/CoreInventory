@@ -11,5 +11,13 @@ function authMiddleware(req, res, next) {
     res.status(401).json({ error: 'Invalid token' });
   }
 }
+function roleMiddleware(allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access forbidden: Insufficient permissions' });
+    }
+    next();
+  };
+}
 
-module.exports = { authMiddleware, JWT_SECRET };
+module.exports = { authMiddleware, roleMiddleware, JWT_SECRET };

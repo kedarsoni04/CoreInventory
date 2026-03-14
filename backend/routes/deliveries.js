@@ -1,6 +1,7 @@
 const express = require('express');
 const { findAll, findOne, insert, update, remove, adjustStock, db, now } = require('../db');
 const { authMiddleware } = require('../middleware');
+const { validate, deliverySchema } = require('../validation');
 const router = express.Router();
 
 router.use(authMiddleware);
@@ -27,7 +28,7 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/deliveries
-router.post('/', (req, res) => {
+router.post('/', validate(deliverySchema), (req, res) => {
   const { customer, warehouse_id, warehouse, scheduled_date, notes, items } = req.body;
   const count = findAll('deliveries').length + 1;
   const reference = `DEL/${new Date().getFullYear()}/${String(count).padStart(3, '0')}`;
@@ -112,6 +113,21 @@ router.put('/:id/items/:itemId', (req, res) => {
 router.delete('/:id/items/:itemId', (req, res) => {
   remove('delivery_items', req.params.itemId);
   res.json({ success: true });
+});
+
+// DELETE /api/deliveries/:id
+router.delete('/:id', (req, res) => {
+  const delivery = findOne('deliveries', { id: req.params.id });
+  if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
+  if (delivery.status === 'Done') return res.status(400).json({ error: 'Cannot delete a validated delivery' });
+  
+  // Delete all items associated with this delivery
+  const items = findAll('delivery_items', { delivery_id: delivery.id });
+  items.forEach(item => remove('delivery_items', item.id));
+  
+  // Delete the delivery
+  remove('deliveries', delivery.id);
+  res.json({ success: true, message: 'Delivery deleted successfully' });
 });
 
 module.exports = router;

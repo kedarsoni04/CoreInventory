@@ -25,7 +25,7 @@ export default function DeliveryDetail() {
     Promise.all([deliveriesAPI.get(id), productsAPI.list()])
       .then(([dr, pr]) => {
         setDelivery(dr.data);
-        setProducts(pr.data);
+        setProducts(Array.isArray(pr.data) ? pr.data : (pr.data.products ?? []));
         setHeaderForm({ customer: dr.data.customer, scheduled_date: dr.data.scheduled_date, notes: dr.data.notes });
       })
       .finally(() => setLoading(false));

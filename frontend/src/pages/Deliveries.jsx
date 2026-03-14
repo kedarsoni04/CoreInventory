@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deliveriesAPI, warehousesAPI } from '../utils/api';
 import toast from 'react-hot-toast';
-import { Plus, Search, ArrowUpFromLine, X } from 'lucide-react';
+import { Plus, Search, ArrowUpFromLine, X, Trash2 } from 'lucide-react';
 
 function StatusBadge({ status }) {
   return <span className={`badge ${status?.toLowerCase()}`}>{status}</span>;
@@ -87,6 +87,27 @@ export default function Deliveries() {
 
   useEffect(() => { load(); }, []);
 
+  const handleDelete = async (id, reference, status, e) => {
+    e.stopPropagation();
+    
+    if (status === 'Done') {
+      toast.error('Cannot delete a validated delivery');
+      return;
+    }
+
+    if (!window.confirm(`Delete delivery ${reference}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await deliveriesAPI.delete(id);
+      toast.success(`Delivery ${reference} deleted`);
+      setDeliveries(deliveries.filter(d => d.id !== id));
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete delivery');
+    }
+  };
+
   const filtered = deliveries.filter(d => {
     const matchSearch = !search || d.reference?.toLowerCase().includes(search.toLowerCase()) || d.customer?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || d.status === statusFilter;
@@ -132,6 +153,7 @@ export default function Deliveries() {
                   <th>Items</th>
                   <th>Status</th>
                   <th>Done Date</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,6 +166,16 @@ export default function Deliveries() {
                     <td style={{ fontFamily: 'var(--font-mono)' }}>{d.items?.length || 0}</td>
                     <td><StatusBadge status={d.status} /></td>
                     <td className="mono" style={{ color: 'var(--text3)' }}>{d.done_date ? d.done_date.split('T')[0] : '—'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button 
+                        className="btn btn-ghost btn-icon" 
+                        onClick={(e) => handleDelete(d.id, d.reference, d.status, e)}
+                        title={d.status === 'Done' ? 'Cannot delete validated delivery' : 'Delete delivery'}
+                        style={{ opacity: d.status === 'Done' ? 0.5 : 1, pointerEvents: d.status === 'Done' ? 'none' : 'auto' }}
+                      >
+                        <Trash2 size={16} color="var(--red)" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

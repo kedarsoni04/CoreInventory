@@ -1,6 +1,7 @@
 const express = require('express');
 const { findAll, findOne, insert, update, adjustStock, getProductStock, db, now } = require('../db');
 const { authMiddleware } = require('../middleware');
+const { validate, receiptSchema } = require('../validation');
 const router = express.Router();
 
 router.use(authMiddleware);
@@ -28,7 +29,7 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/receipts
-router.post('/', (req, res) => {
+router.post('/', validate(receiptSchema), (req, res) => {
   const { supplier, warehouse_id, warehouse, scheduled_date, notes, items } = req.body;
   const count = findAll('receipts').length + 1;
   const reference = `RCP/${new Date().getFullYear()}/${String(count).padStart(3, '0')}`;
@@ -116,6 +117,22 @@ router.delete('/:id/items/:itemId', (req, res) => {
   const { remove } = require('../db');
   remove('receipt_items', req.params.itemId);
   res.json({ success: true });
+});
+
+// DELETE /api/receipts/:id
+router.delete('/:id', (req, res) => {
+  const receipt = findOne('receipts', { id: req.params.id });
+  if (!receipt) return res.status(404).json({ error: 'Receipt not found' });
+  if (receipt.status === 'Done') return res.status(400).json({ error: 'Cannot delete a validated receipt' });
+  
+  const { remove } = require('../db');
+  // Delete all items associated with this receipt
+  const items = findAll('receipt_items', { receipt_id: receipt.id });
+  items.forEach(item => remove('receipt_items', item.id));
+  
+  // Delete the receipt
+  remove('receipts', receipt.id);
+  res.json({ success: true, message: 'Receipt deleted successfully' });
 });
 
 module.exports = router;

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { receiptsAPI, warehousesAPI } from '../utils/api';
 import toast from 'react-hot-toast';
-import { Plus, Search, ArrowDownToLine, X } from 'lucide-react';
+import { Plus, Search, ArrowDownToLine, X, Trash2 } from 'lucide-react';
 
 function StatusBadge({ status }) {
   return <span className={`badge ${status?.toLowerCase()}`}>{status}</span>;
@@ -87,6 +87,27 @@ export default function Receipts() {
 
   useEffect(() => { load(); }, []);
 
+  const handleDelete = async (id, reference, status, e) => {
+    e.stopPropagation();
+    
+    if (status === 'Done') {
+      toast.error('Cannot delete a validated receipt');
+      return;
+    }
+
+    if (!window.confirm(`Delete receipt ${reference}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await receiptsAPI.delete(id);
+      toast.success(`Receipt ${reference} deleted`);
+      setReceipts(receipts.filter(r => r.id !== id));
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete receipt');
+    }
+  };
+
   const statuses = ['all', 'Draft', 'Ready', 'Done', 'Canceled'];
 
   const filtered = receipts.filter(r => {
@@ -134,6 +155,7 @@ export default function Receipts() {
                   <th>Items</th>
                   <th>Status</th>
                   <th>Done Date</th>
+                  <th style={{ width: '50px', textAlign: 'center' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -146,6 +168,16 @@ export default function Receipts() {
                     <td style={{ fontFamily: 'var(--font-mono)' }}>{r.items?.length || 0}</td>
                     <td><StatusBadge status={r.status} /></td>
                     <td className="mono" style={{ color: 'var(--text3)' }}>{r.done_date ? r.done_date.split('T')[0] : '—'}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button 
+                        className="btn btn-ghost btn-icon" 
+                        onClick={(e) => handleDelete(r.id, r.reference, r.status, e)}
+                        title={r.status === 'Done' ? 'Cannot delete validated receipt' : 'Delete receipt'}
+                        style={{ opacity: r.status === 'Done' ? 0.5 : 1, pointerEvents: r.status === 'Done' ? 'none' : 'auto' }}
+                      >
+                        <Trash2 size={16} color="var(--red)" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -1,7 +1,8 @@
 const express = require('express');
-const { findAll, findOne, insert, update, remove, adjustStock, getProductStock, db, now } = require('../db');
-const { authMiddleware } = require('../middleware');
+const { findAll, findOne, insert, update, remove, adjustStock, getProductStock, now } = require('../db');
+const { authMiddleware, roleMiddleware } = require('../middleware');
 const bcrypt = require('bcryptjs');
+const { validate, userSchema, userUpdateSchema, warehouseSchema, locationSchema, transferSchema, adjustmentSchema } = require('../validation');
 
 // ── Transfers ──────────────────────────────────────────────────────────────────
 const transfersRouter = express.Router();
@@ -19,7 +20,7 @@ transfersRouter.get('/:id', (req, res) => {
   res.json({ ...t, items: findAll('transfer_items', { transfer_id: t.id }) });
 });
 
-transfersRouter.post('/', (req, res) => {
+transfersRouter.post('/', validate(transferSchema), (req, res) => {
   const { from_location_id, to_location_id, scheduled_date, notes, items } = req.body;
   const fromLoc = findOne('locations', { id: from_location_id });
   const toLoc = findOne('locations', { id: to_location_id });
@@ -68,7 +69,7 @@ adjustmentsRouter.get('/', (req, res) => {
   res.json(adjustments);
 });
 
-adjustmentsRouter.post('/', (req, res) => {
+adjustmentsRouter.post('/', validate(adjustmentSchema), (req, res) => {
   const { location_id, notes, items } = req.body;
   const loc = findOne('locations', { id: location_id });
   const count = findAll('adjustments').length + 1;
@@ -77,7 +78,7 @@ adjustmentsRouter.post('/', (req, res) => {
   if (items?.length) {
     items.forEach(item => {
       const product = findOne('products', { id: item.product_id });
-      const currentStock = db.stock.find(s => s.product_id === item.product_id && s.location_id === location_id);
+      const currentStock = findOne('stock', { product_id: item.product_id, location_id: location_id });
       insert('adjustment_items', {
         adjustment_id: adj.id, product_id: item.product_id, product_name: product?.name || '', product_sku: product?.sku || '',
         qty_on_hand: currentStock?.quantity || 0, qty_counted: item.qty_counted || 0, unit: product?.unit || 'pcs'
@@ -116,12 +117,12 @@ warehousesRouter.get('/', (req, res) => {
   res.json(warehouses);
 });
 
-warehousesRouter.post('/', (req, res) => {
+warehousesRouter.post('/', validate(warehouseSchema), (req, res) => {
   const wh = insert('warehouses', req.body);
   res.status(201).json(wh);
 });
 
-warehousesRouter.put('/:id', (req, res) => {
+warehousesRouter.put('/:id', validate(warehouseSchema), (req, res) => {
   const updated = update('warehouses', req.params.id, req.body);
   if (!updated) return res.status(404).json({ error: 'Not found' });
   res.json(updated);
@@ -138,7 +139,7 @@ locationsRouter.get('/', (req, res) => {
   res.json(locs);
 });
 
-locationsRouter.post('/', (req, res) => {
+locationsRouter.post('/', validate(locationSchema), (req, res) => {
   const wh = findOne('warehouses', { id: req.body.warehouse_id });
   const loc = insert('locations', { ...req.body, warehouse: wh?.name || '' });
   res.status(201).json(loc);
@@ -189,6 +190,7 @@ dashboardRouter.get('/', (req, res) => {
 // ── Users ──────────────────────────────────────────────────────────────────────
 const usersRouter = express.Router();
 usersRouter.use(authMiddleware);
+usersRouter.use(roleMiddleware(['manager', 'admin']));
 
 usersRouter.get('/', (req, res) => {
   const users = findAll('users').map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, created_at: u.created_at }));
@@ -201,7 +203,7 @@ usersRouter.get('/:id', (req, res) => {
   res.json({ id: u.id, name: u.name, email: u.email, role: u.role, created_at: u.created_at });
 });
 
-usersRouter.post('/', async (req, res) => {
+usersRouter.post('/', validate(userSchema), async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Name, email, and password required' });
   if (findOne('users', { email })) return res.status(409).json({ error: 'Email already exists' });
@@ -210,7 +212,7 @@ usersRouter.post('/', async (req, res) => {
   res.status(201).json({ id: user.id, name: user.name, email: user.email, role: user.role });
 });
 
-usersRouter.put('/:id', async (req, res) => {
+usersRouter.put('/:id', validate(userUpdateSchema), async (req, res) => {
   const { name, email, password, role } = req.body;
   const user = findOne('users', { id: req.params.id });
   if (!user) return res.status(404).json({ error: 'Not found' });

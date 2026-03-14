@@ -100,7 +100,7 @@ export default function Transfers() {
 
   const load = () => {
     Promise.all([transfersAPI.list(), locationsAPI.list(), productsAPI.list()])
-      .then(([tr, lr, pr]) => { setTransfers(tr.data); setLocations(lr.data); setProducts(pr.data); })
+      .then(([tr, lr, pr]) => { setTransfers(tr.data); setLocations(lr.data); setProducts(pr.data.products); })
       .finally(() => setLoading(false));
   };
 

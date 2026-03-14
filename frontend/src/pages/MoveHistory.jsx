@@ -17,7 +17,7 @@ export default function MoveHistory() {
 
   useEffect(() => {
     Promise.all([ledgerAPI.list(), productsAPI.list()])
-      .then(([lr, pr]) => { setEntries(lr.data); setProducts(pr.data); })
+      .then(([lr, pr]) => { setEntries(lr.data); setProducts(pr.data.products); })
       .finally(() => setLoading(false));
   }, []);
 

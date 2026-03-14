@@ -104,7 +104,7 @@ export default function Products() {
 
   const load = () => {
     Promise.all([productsAPI.list(), locationsAPI.list()])
-      .then(([pr, lr]) => { setProducts(pr.data); setLocations(lr.data); })
+      .then(([pr, lr]) => { setProducts(pr.data.products); setLocations(lr.data); })
       .finally(() => setLoading(false));
   };
 

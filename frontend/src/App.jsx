@@ -6,6 +6,7 @@ import './index.css';
 
 // Pages
 import LoginPage from './pages/LoginPage';
+import PasswordReset from './pages/PasswordReset';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -31,6 +32,7 @@ export default function App() {
         <Toaster position="top-right" toastOptions={{ duration: 3000, style: { background: '#1c1f22', color: '#e8eaed', border: '1px solid #2a2d31', fontFamily: "'DM Sans', sans-serif", fontSize: '13.5px' } }} />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<PasswordReset />} />
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
