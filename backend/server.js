@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const { seedDatabase } = require('./db');
 
@@ -33,10 +34,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+// 404 handler for API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API Endpoint not found' });
 });
+
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  });
+} else {
+  // 404 handler for non-API routes in dev
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+  });
+}
 
 const { loadDatabase } = require('./db');
 
