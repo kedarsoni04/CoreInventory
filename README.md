@@ -2,6 +2,10 @@
 
 A full-stack, modular Inventory Management System (IMS) built to digitize and streamline all stock-related operations. Replaces manual registers and Excel sheets with a centralized, real-time, easy-to-use web application.
 
+🚀 **Live Deployment:** [https://coreinventory-h6dn.onrender.com](https://coreinventory-h6dn.onrender.com)
+
+![Dashboard Preview](./preview.png)
+
 ---
 
 ## 🎯 Tech Stack
